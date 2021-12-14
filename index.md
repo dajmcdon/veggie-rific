@@ -15,4 +15,6 @@ Here's a bunch of notebooks. Stupid repo named for later removal
 # Covid classifier
 
 * [Alden's 6 Dec Analysis](rmd-files/updown-2021-12-06.html)
+* [Alden's 14 Dec Analysis](rmd-files/updown-2021-12-14.html)
+* 
 
