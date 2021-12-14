@@ -112,7 +112,7 @@ $$\\[.07in]$$
 * Subset to forecast dates / aheads / geo_values that Logan forecast
 * We do Geometric mean relative to COVIDHub-baseline
 
-#### WIS by Forecast Date
+#### WIS by Forecast Date (GeoMean)
 
 
 ``` {r fd-wis}
@@ -153,7 +153,37 @@ ggplotly(plot_wis, tooltip="text", height=800, width= 1000) %>%
   layout(hoverlabel = list(bgcolor = "white"))
 ```
 
-#### WIS by Ahead
+#### WIS by Forecast Date (Mean)
+
+```{r fd-wis-m}
+plot_wis <-
+  plot_canonical(results, 
+                 x = "forecast_date", 
+                 y = "wis", 
+                 aggr = Mean,
+                 grp_vars = c("forecaster","ahead"), 
+                 facet_rows = "ahead", dots = FALSE,
+                 base_forecaster = "COVIDhub-baseline") + 
+  labs(title = subtitle, 
+       x = "Forecast Dates", 
+       y = "Geometric Mean WIS") +
+  #geom_point(aes(forecast_date, round(wis, digits = 2), color)), alpha = 0.05) +
+  facet_wrap(~ahead, nrow = 4, labeller = labeller(ahead=facets.label)) +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = "center"),
+        legend.position = "bottom",
+        legend.title = element_blank()) + 
+  scale_y_log10() +
+  geom_hline(yintercept = 1, size = 1.5) +
+  scale_color_viridis_d() +
+  guides(color = guide_legend(ncol = 2))
+
+
+ggplotly(plot_wis, tooltip="text", height=800, width= 1000) %>% 
+  layout(hoverlabel = list(bgcolor = "white"))
+```
+
+#### WIS by Ahead (GeoMean)
 
 
 ``` {r overall-wis}
@@ -182,7 +212,34 @@ ggplotly(plot_wis_a, tooltip="text", height=800, width= 1000) %>%
   layout(hoverlabel = list(bgcolor = "white"))
 ```
 
+#### WIS by Ahead (Mean)
 
+
+``` {r overall-wis-m}
+plot_wis_a <-
+  plot_canonical(results, 
+                 x = "ahead", 
+                 y = "wis", 
+                 aggr = GeoMean,
+                 grp_vars = c("forecaster"), 
+                 dots = TRUE,
+                 base_forecaster = "COVIDhub-baseline") + 
+  labs(title = subtitle, 
+       x = "Days ahead", 
+       y = "Geometric Mean WIS") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = "center"),
+        legend.position = "bottom",
+        legend.title = element_blank()) + 
+  geom_hline(yintercept = 1, size = 1.5) +
+  scale_y_log10() +
+  scale_color_viridis_d() +
+  guides(color = guide_legend(ncol = 2))
+
+
+ggplotly(plot_wis_a, tooltip="text", height=800, width= 1000) %>% 
+  layout(hoverlabel = list(bgcolor = "white"))
+```
 
 
 #### % Coverage by Forecast Date
