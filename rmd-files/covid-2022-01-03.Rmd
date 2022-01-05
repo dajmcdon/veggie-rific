@@ -222,7 +222,7 @@ plot_wis_a <-
   plot_canonical(results, 
                  x = "ahead", 
                  y = "wis", 
-                 aggr = GeoMean,
+                 aggr = Mean,
                  grp_vars = c("forecaster"), 
                  dots = TRUE,
                  base_forecaster = "COVIDhub-baseline") + 
