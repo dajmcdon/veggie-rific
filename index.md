@@ -8,6 +8,7 @@ Here's a bunch of notebooks. Stupid repo named for later removal
 
 * [Logan's 6 Dec Models](rmd-files/covid-2021-12-06.html)
 * [Logan's 3 Jan Models](rmd-files/covid-2022-01-03.html)
+* [Conditional analysis on a subset](rmd-files/covid-2022-01-03-conditional.html)
 
 # Flu Forecasts
 
