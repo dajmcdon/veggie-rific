@@ -20,6 +20,7 @@ Here's a bunch of notebooks. Stupid repo named for later removal
 * [Alden's 6 Dec Analysis](rmd-files/updown-2021-12-06.html)
 * [Alden's 14 Dec Analysis](rmd-files/updown-2021-12-14.html)
 * [Alden's 31 Dec Analysis](writeups/logistic-multiclass-direction-prediction.html)
+* [Alden's 7 Jan Analysis](rmd-files/updown-2022-01-07.html)
 
 # Descriptive
 
