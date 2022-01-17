@@ -13,6 +13,7 @@ Here's a bunch of notebooks. Stupid repo named for later removal
 
 
 * [Comparison](rmd-files/last-minute-comparison.html)
+* [Ensemble Comparison](rmd-files/last-minute-comparison-take2.html)
 
 <hr>
 
