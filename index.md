@@ -12,6 +12,8 @@ Here's a bunch of notebooks. Stupid repo named for later removal
 * [Antelope (old prod forecaster)](rmd-files/antelope.html)
 
 
+* [Comparison](rmd-files/last-minute-comparison.html)
+
 <hr>
 
 # Covid Forecasts

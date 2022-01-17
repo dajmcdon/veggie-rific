@@ -1,0 +1,59 @@
+---
+title: Last minute comparison
+author: Delphi forecast monkeys
+date: "2022-01-17"
+---
+
+
+```{r setup, include=FALSE}
+library(aws.s3)
+library(tidyverse)
+s3b <- get_bucket("forecasting-team-data")
+knitr::opts_chunk$set(echo = FALSE, cache = TRUE)
+logan <- s3readRDS("covid/dev-qar-top-3-predictions-cards-2022-01-17.RDS", s3b)
+prod <- s3readRDS("hosp-states/predictions_for_2022-01-17.RDS", s3b) %>%
+  mutate(value = value / 7) # some bug here
+ar3 <- s3readRDS("covid/glmnet-forecaster/predictions-with-quantiles-2022-01-17.RDS", s3b) %>%
+  mutate(value = pmax(value, 0))
+primary <- bind_rows(
+  logan %>% dplyr::filter(str_detect(forecaster, "dev6v3_")),
+  prod,
+  ar3 %>% dplyr::filter(forecaster == "AR3")
+)
+secondary <- bind_rows(
+  logan %>% dplyr::filter(str_detect(forecaster, "dev6v3_", negate = TRUE)),
+  ar3 %>% dplyr::filter(forecaster != "AR3")
+)
+library(covidcast)
+library(evalcast)
+
+last_week <- get_covidhub_predictions(ahead = 1:28,
+  "COVIDhub-4_week_ensemble", signal = "confirmed_admissions_covid_1d",
+  forecast_dates = "2022-01-10", incidence_period = "day")
+```
+
+# Primary forecasters
+
+```{r, fig.height = 40, fig.width = 15, dev="CairoSVG", echo=FALSE}
+plot_trajectory(
+  primary, "state", intervals = c(.5, .9), start_day = "2021-11-15",
+  show_points = FALSE, ncol = 5) + theme(legend.position = "bottom")
+```
+
+# Secondary forecasters
+
+```{r, fig.height = 40, fig.width = 15, dev="CairoSVG", echo=FALSE}
+plot_trajectory(
+  primary, "state", intervals = c(.5, .9), start_day = "2021-11-15",
+  show_points = FALSE, ncol = 5) + theme(legend.position = "bottom")
+```
+
+# Compare point fcasts to Hub last week
+
+```{r, fig.height = 40, fig.width = 15, dev="CairoSVG", echo=FALSE}
+plot_trajectory(
+  primary, "state", show_quantiles = FALSE, start_day = "2021-11-15",
+  show_points = FALSE, ncol = 5) +
+  geom_line(data = last_week %>% dplyr::filter(is.na(quantile)), aes(target_end_date, value), color = "orange") +
+  theme(legend.position = "bottom")
+```
