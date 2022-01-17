@@ -28,6 +28,8 @@ Here's a bunch of notebooks. Stupid repo named for later removal
 
 * [Addison's 6 Dec Analysis](rmd-files/flu-2021-12-06.html)
 * [Addison's 4 Jan Analysis](writeups/proposed-model.html)
+* [Addison's 7 Jan Analysis](writeups/flu-proposed-model-2022-01-07.html)
+* [Dmitry's 10 Jan Flu Data Analysis](rmd-files/flu-2021-01-10.html)
 
 # Covid classifier
 
