@@ -1,0 +1,125 @@
+---
+title: Last minute comparison, Ensembled
+author: Delphi forecast monkeys
+date: "2022-01-17"
+---
+
+
+```{r setup, include=FALSE, cache=TRUE}
+library(aws.s3)
+library(tidyverse)
+s3b <- get_bucket("forecasting-team-data")
+knitr::opts_chunk$set(echo = FALSE, cache = TRUE)
+logan <- s3readRDS("covid/dev-qar-top-3-predictions-cards-2022-01-17.RDS", s3b)
+prod <- s3readRDS("hosp-states/predictions_for_2022-01-17.RDS", s3b) %>%
+  mutate(value = value / 7) # some bug here
+ar3 <- s3readRDS("covid/glmnet-forecaster/predictions-with-quantiles-2022-01-17.RDS", s3b) %>%
+  mutate(value = pmax(value, 0))
+primary <- bind_rows(
+  logan %>% dplyr::filter(str_detect(forecaster, "dev6v3_")),
+  prod,
+  ar3 %>% dplyr::filter(forecaster == "AR3")
+)
+secondary <- bind_rows(
+  logan %>% dplyr::filter(str_detect(forecaster, "dev6v3_", negate = TRUE)),
+  ar3 %>% dplyr::filter(forecaster != "AR3")
+)
+ens <- s3readRDS("ensemble/ensemble-predictions-cards-multiple-weeks.RDS", s3b) %>% dplyr::filter(forecast_date == "2022-01-17")
+library(covidcast)
+library(evalcast)
+
+last_week <- get_covidhub_predictions(ahead = 1:28,
+  "COVIDhub-4_week_ensemble", signal = "confirmed_admissions_covid_1d",
+  forecast_dates = "2022-01-10", incidence_period = "day")
+
+truth_data <- covidcast_signal(
+  "hhs", "confirmed_admissions_covid_1d", 
+  geo_type = "state", start_day = "2021-11-15") %>%
+  dplyr::select(geo_value, time_value, value) %>%
+  dplyr::rename(target_end_date = time_value)
+
+
+traj_plot <- function(pcards, qtp = c(.5, .8, .95)) {
+  qtp <- as.integer(sort(round(500L * (1 + qtp %o% c(-1L,1L)))))
+  qdf <- pcards %>%
+      dplyr::filter(as.integer(round(quantile*1000)) %in% c(qtp)) %>%
+      mutate(endpoint_type = if_else(quantile < 0.5, 'lower', 'upper'),
+             alp = if_else(endpoint_type == 'lower',
+                           format(2*quantile, digits=3, nsmall=3),
+                           format(2*(1-quantile), digits=3, nsmall=3)),
+             interval = forcats::fct_rev(
+               paste0((1-as.numeric(alp))*100, "%"))) %>%
+      select(-quantile, -alp) %>%
+      pivot_wider(names_from = "endpoint_type", values_from = "value")
+  pdf <- pcards %>% dplyr::filter(as.integer(round(quantile*1000)) == 500L) %>%
+    select(-quantile)
+  
+  ggplot(truth_data, aes(target_end_date)) +
+    geom_ribbon(
+      data = qdf,
+      mapping = aes(ymin = lower, ymax = upper, fill = interval)) +
+    scale_fill_brewer(palette = "Blues") +
+    geom_line(aes(y = value)) +
+    geom_line(data = pdf, mapping = aes(y = value), 
+              color = "orange", size = 1) +
+    geom_point(data = pdf, 
+             mapping = aes(y = value),
+             color = "orange", size = 3) +
+    theme_bw(base_size = 20) + 
+    facet_wrap(~geo_value, scales = "free_y", ncol = 5) +
+    theme(legend.position = "none") + ylab("") + xlab("")
+}
+```
+
+# Stuff {.tabset}
+
+
+## Qens
+
+```{r, fig.height = 40, fig.width = 15, dev="CairoSVG", echo=FALSE}
+plot_trajectory(
+  ens %>% dplyr::filter(forecaster == "Qens"), 
+  "state", start_day = "2021-11-15",
+  ncol = 5)
+```
+
+```{r, dev="CairoSVG", echo=FALSE}
+plot_trajectory(
+  ens %>% dplyr::filter(forecaster == "Qens", geo_value == "us"),
+                "nation", start_day = "2021-11-15")
+
+```
+
+
+## CDFens
+
+```{r, fig.height = 40, fig.width = 15, dev="CairoSVG", echo=FALSE}
+plot_trajectory(
+  ens %>% dplyr::filter(forecaster == "CDFens"), 
+  "state", start_day = "2021-11-15",
+  ncol = 5)
+```
+
+```{r, dev="CairoSVG", echo=FALSE}
+plot_trajectory(
+  ens %>% dplyr::filter(forecaster == "CDFens", geo_value == "us"),
+                "nation", start_day = "2021-11-15")
+
+```
+
+
+## Components
+
+```{r, fig.height = 40, fig.width = 15, dev="CairoSVG", echo=FALSE}
+plot_trajectory(
+  ens %>% dplyr::filter(!(forecaster %in% c("CDFens","Qens"))), 
+  "state", start_day = "2021-11-15",
+  ncol = 5)
+```
+
+```{r, dev="CairoSVG", echo=FALSE}
+plot_trajectory(
+  ens %>% dplyr::filter(!(forecaster %in% c("CDFens","Qens")), geo_value == "us"),
+                "nation", start_day = "2021-11-15")
+
+```

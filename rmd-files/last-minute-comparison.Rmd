@@ -5,7 +5,7 @@ date: "2022-01-17"
 ---
 
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, cache=TRUE}
 library(aws.s3)
 library(tidyverse)
 s3b <- get_bucket("forecasting-team-data")
@@ -57,3 +57,29 @@ plot_trajectory(
   geom_line(data = last_week %>% dplyr::filter(is.na(quantile)), aes(target_end_date, value), color = "orange") +
   theme(legend.position = "bottom")
 ```
+
+# Model averaged
+
+```{r, fig.height = 40, fig.width = 15, dev="CairoSVG", echo=FALSE}
+avg <- primary %>%
+  mutate(quantile = as.character(round(quantile * 1e3))) %>%
+  group_by(data_source, signal, ahead, geo_value, quantile, forecast_date,
+           target_end_date, incidence_period) %>%
+  summarise(value = mean(value)) %>%
+  mutate(quantile = as.numeric(quantile) / 1e3) %>%
+  mutate(forecaster = "ensembel")
+
+plot_trajectory(
+  avg, "state", intervals = c(.5, .9), start_day = "2021-11-15",
+  ncol = 5)
+```
+
+
+```{r, fig.height = 40, fig.width = 15, dev="CairoSVG", echo=FALSE}
+plot_trajectory(
+  avg, "state", show_quantiles = FALSE, start_day = "2021-11-15",
+  show_points = FALSE, ncol = 5) +
+  geom_line(data = last_week %>% dplyr::filter(is.na(quantile)), 
+            aes(target_end_date, value), color = "orange")
+```
+
